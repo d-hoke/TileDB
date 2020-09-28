@@ -116,6 +116,7 @@ struct DenseArrayFx {
   void create_dense_vector(const std::string& path);
   void create_dense_array(const std::string& array_name);
   void create_dense_array_1_attribute(const std::string& array_name);
+  void create_dense_array_1_nullable_attribute(const std::string& array_name);
   void write_dense_vector_mixed(const std::string& array_name);
   void write_dense_array(const std::string& array_name);
   void write_dense_array_missing_attributes(const std::string& array_name);
@@ -1769,6 +1770,65 @@ void DenseArrayFx::create_dense_array_1_attribute(
   tiledb_array_schema_free(&array_schema);
 }
 
+void DenseArrayFx::create_dense_array_1_nullable_attribute(
+    const std::string& array_name) {
+  // Create dimensions
+  uint64_t dim_domain[] = {1, 4, 1, 4};
+  uint64_t tile_extents[] = {2, 2};
+  tiledb_dimension_t* d1;
+  int rc = tiledb_dimension_alloc(
+      ctx_, "d1", TILEDB_UINT64, &dim_domain[0], &tile_extents[0], &d1);
+  CHECK(rc == TILEDB_OK);
+  tiledb_dimension_t* d2;
+  rc = tiledb_dimension_alloc(
+      ctx_, "d2", TILEDB_UINT64, &dim_domain[2], &tile_extents[1], &d2);
+  CHECK(rc == TILEDB_OK);
+
+  // Create domain
+  tiledb_domain_t* domain;
+  rc = tiledb_domain_alloc(ctx_, &domain);
+  CHECK(rc == TILEDB_OK);
+  rc = tiledb_domain_add_dimension(ctx_, domain, d1);
+  CHECK(rc == TILEDB_OK);
+  rc = tiledb_domain_add_dimension(ctx_, domain, d2);
+  CHECK(rc == TILEDB_OK);
+
+  // Create attributes
+  tiledb_attribute_t* a1;
+  rc = tiledb_attribute_alloc(ctx_, "a1", TILEDB_INT32, &a1);
+  CHECK(rc == TILEDB_OK);
+  rc = tiledb_attribute_set_nullable(ctx_, a1, 1);
+  CHECK(rc == TILEDB_OK);
+
+  // Create array schema
+  tiledb_array_schema_t* array_schema;
+  rc = tiledb_array_schema_alloc(ctx_, TILEDB_DENSE, &array_schema);
+  CHECK(rc == TILEDB_OK);
+  rc = tiledb_array_schema_set_cell_order(ctx_, array_schema, TILEDB_ROW_MAJOR);
+  CHECK(rc == TILEDB_OK);
+  rc = tiledb_array_schema_set_tile_order(ctx_, array_schema, TILEDB_ROW_MAJOR);
+  CHECK(rc == TILEDB_OK);
+  rc = tiledb_array_schema_set_domain(ctx_, array_schema, domain);
+  CHECK(rc == TILEDB_OK);
+  rc = tiledb_array_schema_add_attribute(ctx_, array_schema, a1);
+  CHECK(rc == TILEDB_OK);
+
+  // Check array schema
+  rc = tiledb_array_schema_check(ctx_, array_schema);
+  CHECK(rc == TILEDB_OK);
+
+  // Create array
+  rc = tiledb_array_create(ctx_, array_name.c_str(), array_schema);
+  CHECK(rc == TILEDB_OK);
+
+  // Clean up
+  tiledb_attribute_free(&a1);
+  tiledb_dimension_free(&d1);
+  tiledb_dimension_free(&d2);
+  tiledb_domain_free(&domain);
+  tiledb_array_schema_free(&array_schema);
+}
+
 void DenseArrayFx::check_return_coords(
     const std::string& path, bool split_coords) {
   std::string array_name = path + "return_coords";
@@ -3330,7 +3390,9 @@ TEST_CASE_METHOD(
 }
 
 TEST_CASE_METHOD(
-    DenseArrayFx, "C API: Test dense array, sorted writes", "[capi], [dense]") {
+    DenseArrayFx,
+    "C API: Test dense array, sorted writes",
+    "[capi], [dense], [sorted_writes]") {
   SECTION("- No serialization") {
     serialize_query_ = false;
   }
@@ -4549,6 +4611,131 @@ TEST_CASE_METHOD(
   tiledb_query_free(&query);
   tiledb_array_free(&array);
   tiledb_ctx_free(&ctx);
+
+  remove_temp_dir(temp_dir);
+}
+
+TEST_CASE_METHOD(
+    DenseArrayFx,
+    "C API: Test dense array, nullable fixed attributes",
+    "[capi], [dense], [nullable-fixed]") {
+#if 0
+  SECTION("- No serialization") {
+    serialize_query_ = false;
+  }
+  SECTION("- Serialization") {
+    serialize_query_ = true;
+  }
+#endif
+
+  std::string array_name =
+      FILE_URI_PREFIX + FILE_TEMP_DIR + "dense-nullable-fixed";
+  std::string temp_dir = FILE_URI_PREFIX + FILE_TEMP_DIR;
+  create_temp_dir(temp_dir);
+  create_dense_array_1_nullable_attribute(array_name);
+
+  // ------ WRITE QUERIES ------ //
+
+  // Open array for write query 1
+  tiledb_array_t* array;
+  int rc = tiledb_array_alloc(ctx_, array_name.c_str(), &array);
+  CHECK(rc == TILEDB_OK);
+  rc = tiledb_array_open(ctx_, array, TILEDB_WRITE);
+  CHECK(rc == TILEDB_OK);
+
+  int a1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+  uint64_t a1_size = sizeof(a1);
+  uint8_t a1_validity[] = {1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0};
+  uint64_t a1_validity_size = sizeof(a1_validity);
+
+  tiledb_validity_vec_t* a1_validity_vec;
+  rc = tiledb_validity_vec_alloc(ctx_, a1_validity_size, &a1_validity_vec);
+  CHECK(rc == TILEDB_OK);
+  rc = tiledb_validity_vec_set(ctx_, a1_validity_vec, a1_validity);
+  CHECK(rc == TILEDB_OK);
+  tiledb_query_t* wq1;
+  std::cerr << "JOE test 1" << std::endl;
+  rc = tiledb_query_alloc(ctx_, array, TILEDB_WRITE, &wq1);
+  REQUIRE(rc == TILEDB_OK);
+  rc = tiledb_query_set_buffer_nullable(
+      ctx_, wq1, "a1", a1, &a1_size, a1_validity_vec);
+  REQUIRE(rc == TILEDB_OK);
+  rc = submit_query_wrapper(array_name, wq1);
+  REQUIRE(rc == TILEDB_OK);
+  rc = tiledb_query_finalize(ctx_, wq1);
+  REQUIRE(rc == TILEDB_OK);
+  std::cerr << "JOE test 2" << std::endl;
+
+  // Clean up
+  rc = tiledb_array_close(ctx_, array);
+  CHECK(rc == TILEDB_OK);
+  tiledb_array_free(&array);
+  tiledb_query_free(&wq1);
+
+  // ------ READ QUERY ------ //
+
+  rc = tiledb_array_alloc(ctx_, array_name.c_str(), &array);
+  CHECK(rc == TILEDB_OK);
+  rc = tiledb_array_open(ctx_, array, TILEDB_READ);
+  CHECK(rc == TILEDB_OK);
+
+  uint64_t subarray_read[] = {1, 4, 1, 4};
+  int a[16];
+  uint64_t a_size = sizeof(a);
+
+  tiledb_validity_vec_t* a_validity_vec;
+  rc = tiledb_validity_vec_alloc(ctx_, 16, &a_validity_vec);
+  CHECK(rc == TILEDB_OK);
+  tiledb_query_t* query;
+  rc = tiledb_query_alloc(ctx_, array, TILEDB_READ, &query);
+  REQUIRE(rc == TILEDB_OK);
+  rc = tiledb_query_set_buffer_nullable(
+      ctx_, query, "a1", a, &a_size, a_validity_vec);
+  REQUIRE(rc == TILEDB_OK);
+  rc = tiledb_query_set_subarray(ctx_, query, subarray_read);
+  CHECK(rc == TILEDB_OK);
+  std::cerr << "JOE test 3" << std::endl;
+  rc = submit_query_wrapper(array_name, query);
+  REQUIRE(rc == TILEDB_OK);
+  std::cerr << "JOE test 4" << std::endl;
+  rc = tiledb_query_finalize(ctx_, query);
+  REQUIRE(rc == TILEDB_OK);
+
+  // int a_c[] = {1, 3, 9, 11, 20, 40, 100, 120, 50, 70, 130, 150, 6, 8, 140,
+  // 160};
+  CHECK(a_size == sizeof(a1));
+  CHECK(!memcmp(a, a1, sizeof(a1)));
+
+  uint64_t a_validity_vec_size;
+  rc = tiledb_validity_vec_size(ctx_, a_validity_vec, &a_validity_vec_size);
+  CHECK(rc == TILEDB_OK);
+  CHECK(a_validity_vec_size == 16);
+
+  uint8_t* a_validity;
+  rc = tiledb_validity_vec_values(ctx_, a_validity_vec, &a_validity, nullptr);
+  CHECK(rc == TILEDB_OK);
+  CHECK(!memcmp(a_validity, a1_validity, sizeof(a1_validity)));
+
+#if 0
+  CHECK(!memcmp(a_nullable, a1_nullable, sizeof(a1_nullable)));
+
+  for (int i = 0; i < 2; ++i) {
+    std::cerr << "JOE a_nullable[" << i << "] " << (uint64_t)a_nullable[i] << std::endl;
+    std::cerr << "JOE a1_nullable[" << i << "] " << (uint64_t)a1_nullable[i] << std::endl;
+  }
+#endif
+
+  // Clean up
+  rc = tiledb_array_close(ctx_, array);
+  CHECK(rc == TILEDB_OK);
+  tiledb_array_free(&array);
+  tiledb_query_free(&query);
+  tiledb_validity_vec_free(&a_validity_vec);
+  tiledb_validity_vec_free(&a1_validity_vec);
+
+  // TODO read w/ col major and compare
+  // rc = tiledb_query_set_layout(ctx_, query, TILEDB_COL_MAJOR);
+  // REQUIRE(rc == TILEDB_OK);
 
   remove_temp_dir(temp_dir);
 }
