@@ -202,13 +202,23 @@ if (MSVC)
   # Add /MPn flag from CMake invocation (if defined).
   add_compile_options(${MSVC_MP_FLAG})
   # Build-specific flags
-  if (CMAKE_BUILD_TYPE MATCHES "Debug")
-    add_compile_options(/DDEBUG /Od /Zi /bigobj)
-  elseif (CMAKE_BUILD_TYPE MATCHES "Release")
-    add_compile_options(/DNDEBUG /Ox)
-  elseif (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
-    add_compile_options(/DNDEBUG /Ox /Zi)
-  endif()
+  #if (CMAKE_BUILD_TYPE MATCHES "Debug")
+  #  add_compile_options(/DDEBUG /Od /Zi /bigobj)
+  #elseif (CMAKE_BUILD_TYPE MATCHES "Release")
+  #  add_compile_options(/DNDEBUG /Ox)
+  #elseif (CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
+  #  add_compile_options(/DNDEBUG /Ox /Zi)
+  #endif()
+#  add_compile_options(
+#                      $<$<AND:$<CXX_COMPILER_ID:MSVC>,<$CONFIG:Debug>>:/DDEBUG /Od /Zi /bigobj>
+#					  $<$<AND:$<CXX_COMPILER_ID:MSVC>,<$CONFIG:Release>>:/DNDEBUG /Ox>
+# 				      $<$<AND:$<CXX_COMPILER_ID:MSVC>,<$CONFIG:RelWithDebInfo>>:/NDEBUG /Ox /Zi>
+#					  )
+  add_compile_options(
+                      "$<$<CONFIG:Debug>:/DDEBUG /Od /Zi /bigobj>"
+                      "$<$<CONFIG:Release>:/DNDEBUG /Ox>"
+                      "$<$<CONFIG:RelWithDebInfo>:/DNDEBUG /Ox /Zi>"
+                      )
 else()
   add_compile_options(-Wall -Wextra)
   if (TILEDB_WERROR)
