@@ -137,8 +137,6 @@ void read_array() {
   tiledb_array_alloc(ctx, array_name, &array);
   tiledb_array_open(ctx, array, TILEDB_READ);
 
-  // Slice only rows 1, 2 and cols 2, 3, 4
-
   // Set maximum buffer sizes
   uint64_t cols_size = sizeof(int32_t) * 3;
   uint64_t rows_size = sizeof(char) * 4;
