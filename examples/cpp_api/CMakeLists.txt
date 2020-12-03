@@ -34,6 +34,16 @@ function(build_TileDB_example_cppapi TARGET)
   target_include_directories(${TARGET}_cpp PUBLIC
     "${CMAKE_CURRENT_BINARY_DIR}/../"
   )
+  #cheap way at the moment to gain access to moodyCamel, is there a better way?
+  #oops, moodyCamel not the prob. for examples, common/threadpool.h is...
+  #ok, needed both
+  target_include_directories(${TARGET}_cpp PUBLIC
+    "${CMAKE_CURRENT_BINARY_DIR}/../../../externals/src/ep_spdlog/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../external/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../tiledb"
+    "${CMAKE_CURRENT_BINARY_DIR}/../tiledb/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../.."
+  )
   target_link_libraries(${TARGET}_cpp tiledb_shared)
   if (NOT WIN32)
     # On Linux, must explicitly link -lpthread -ldl in order for static linking

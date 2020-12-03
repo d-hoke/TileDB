@@ -71,7 +71,7 @@ void write_array() {
   std::vector<char> rows = {'a', 'b', 'b', 'c'};
   std::vector<uint64_t> rows_offsets = {0, 1, 3};
   std::vector<int32_t> cols = {1, 4, 3};
-  std::vector<int32_t> data = {1, 2, 3};
+  std::vector<int32_t> data = {5, 6, 7}; //1, 2, 3};
 
   // Open the array for writing and create the query.
   Array array(ctx, array_name, TILEDB_WRITE);

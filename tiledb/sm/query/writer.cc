@@ -782,6 +782,7 @@ Status Writer::check_coord_oob() const {
         auto dim = array_schema_->dimension(d);
         if (datatype_is_string(dim->type()))
           return Status::Ok();
+//	 asm("int $3\n");
         return dim->oob(buffs[d] + c * coord_sizes[d]);
       });
 

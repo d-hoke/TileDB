@@ -83,6 +83,7 @@ set(TILEDB_CORE_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
 # Include the C API directory so that the C++ 'tiledb' file can directly
 # include "tiledb.h".
 list(APPEND TILEDB_CORE_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../tiledb/sm/c_api")
+list(APPEND TILEDB_CORE_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../external/include")
 
 # Gather the test source files
 set(TILEDB_TEST_SOURCES
