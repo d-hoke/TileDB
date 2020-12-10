@@ -130,7 +130,8 @@ int test4(int argc, char **argv)
 //   int nmapitems = 2; //think one task won't make it to .execute/.wait point...
 //   int nmapitems = 1000;
 //   int nmapitems = 2000;
-   int nmapitems = 50000;
+   int nmapitems = 10000;
+//   int nmapitems = 50000;
 //   int nmapitems = 100;
 //   int nmapitems = 50;
    for(auto i = 0 ; i < nmapitems; ++i)
@@ -145,8 +146,9 @@ int test4(int argc, char **argv)
    std::vector<ThreadPool::Task> tasks;
    tasks.reserve(nmapitems);
    //int maxiters = 1;
-   int maxiters = 20000;
+   //int maxiters = 20000;
    //int maxiters = 1000;
+   int maxiters = 300;
    //int maxiters = 5000;
    
    time_t st1, et1;
@@ -175,7 +177,8 @@ int test4(int argc, char **argv)
 	      ++cntr;
 	      time(&t2);
 	   }
-	 while(difftime(t2, t1) < 5);
+//	 while(difftime(t2, t1) < 5);
+	 while(difftime(t2, t1) < .01);
 #else
 	 time(&t2);
 #endif

@@ -396,7 +396,7 @@ std::vector<Status> parallel_for_2d(
           subrange_i.second,
           subrange_j.first,
           subrange_j.second);
-#if 0
+#if 01
       tasks.emplace_back(tp->execute(std::move(bound_fn)));
 #else
       bound_fn(); //trying to see why coord oob...
