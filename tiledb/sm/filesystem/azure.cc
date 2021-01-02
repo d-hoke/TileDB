@@ -39,6 +39,13 @@
 #include "tiledb/sm/misc/logger.h"
 #include "tiledb/sm/misc/utils.h"
 
+#if _WIN32 &&defined(min)
+#undef min
+#endif
+#if _WIN32 && defined(max)
+#undef max
+#endif
+
 namespace tiledb {
 namespace sm {
 

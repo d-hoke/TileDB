@@ -332,6 +332,14 @@ if (TILEDB_S3 OR TILEDB_AZURE OR TILEDB_GCS OR TILEDB_SERIALIZATION)
       INTERFACE
         CURL::libcurl
     )
+  elseif (WIN32 AND TILEDB_AZURE)
+    find_package(Curl_EP REQUIRED)
+#	include_directories( ${Curl_EP_INCLUDE_DIR} )
+#	include_directories( ${CURL_INCLUDE_DIR} )
+    target_link_libraries(TILEDB_CORE_OBJECTS_ILIB
+      INTERFACE
+        CURL::libcurl
+    )
   endif()
 endif()
 
@@ -408,7 +416,8 @@ endif()
 
 # Win32 specific libraries
 if (WIN32)
-  set(WIN32_LIBS shlwapi rpcrt4 bcrypt)
+  #ws2_32.lib, crypt32.lib needed to satisfy curl dependencies
+  set(WIN32_LIBS shlwapi rpcrt4 bcrypt ws2_32 crypt32)
 
   if (TILEDB_S3)
     list(APPEND WIN32_LIBS "${AWS_EXTRA_LIBS}")
@@ -498,9 +507,19 @@ if ((TILEDB_S3 OR TILEDB_AZURE OR TILEDB_GCS OR TILEDB_SERIALIZATION) AND NOT WI
       endif()
   endif()
 
+elseif( WIN32 AND TILEDB_AZURE )
+    #may need to be done *before* building azure
+  find_package(Curl_EP REQUIRED)
+  include_directories( ${CURL_INCLUDE_DIR} )
+  include(FindPackageHandleStandardArgs)
+  FIND_PACKAGE_HANDLE_STANDARD_ARGS(Curl
+    REQUIRED_VARS CURL_LIBRARIES CURL_INCLUDE_DIR
+  )
+  set(CURL_APPEND_LIBS ${CURL_LIBRARIES})
 endif()
 
 if (CURL_APPEND_LIBS)
+  message(STATUS "adding curl related libraries ${CURL_APPEND_LIBS}")
   target_link_libraries(TILEDB_CORE_OBJECTS_ILIB
     INTERFACE
     ${CURL_APPEND_LIBS})
@@ -658,7 +677,16 @@ set(TILEDB_EXPORT_HEADER "${CMAKE_CURRENT_BINARY_DIR}/tiledb_export.h")
 set(TILEDB_EXPORT_HEADER "${TILEDB_EXPORT_HEADER}" PARENT_SCOPE)
 
 # Set related compiler settings
-target_compile_definitions(TILEDB_CORE_OBJECTS PRIVATE -DTILEDB_CORE_OBJECTS_EXPORTS)
+if(WIN32)
+  #TBD: How to conditionally add azure_storage_lite_EXPORTS, CURL_STATICLIB, (subject to building with AZURE)
+#  target_compile_definitions(TILEDB_CORE_OBJECTS PRIVATE -DTILEDB_CORE_OBJECTS_EXPORTS -EHsc -DCURL_STATICLIB)
+#  target_compile_definitions(TILEDB_CORE_OBJECTS PRIVATE -DTILEDB_CORE_OBJECTS_EXPORTS -EHsc -DCURL_STATICLIB -Dazure_storage_lite_EXPORTS)
+  target_compile_definitions(TILEDB_CORE_OBJECTS PRIVATE -DTILEDB_CORE_OBJECTS_EXPORTS -DCURL_STATICLIB -Dazure_storage_lite_EXPORTS)
+  target_compile_options(TILEDB_CORE_OBJECTS PRIVATE -EHsc)
+else()
+  target_compile_definitions(TILEDB_CORE_OBJECTS PRIVATE -DTILEDB_CORE_OBJECTS_EXPORTS)
+endif()
+
 target_include_directories(TILEDB_CORE_OBJECTS PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 # Add the generated header to the public headers list

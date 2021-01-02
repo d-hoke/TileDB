@@ -77,8 +77,10 @@ if (NOT CURL_FOUND AND TILEDB_SUPERBUILD)
       URL "https://curl.haxx.se/download/curl-7.64.1.tar.gz"
       URL_HASH SHA1=54ee48d81eb9f90d3efdc6cdf964bd0a23abc364
       CMAKE_ARGS
+	    --verbose
+	    --trace
         -DCMAKE_INSTALL_PREFIX=${TILEDB_EP_INSTALL_PREFIX}
-        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DBUILD_SHARED_LIBS=OFF
         -DCURL_DISABLE_LDAP=ON
         -DCURL_DISABLE_LDAPS=ON
@@ -86,6 +88,7 @@ if (NOT CURL_FOUND AND TILEDB_SUPERBUILD)
         -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true
         "${WITH_SSL}"
         "-DCMAKE_C_FLAGS=${CFLAGS_DEF}"
+#        "-DCMAKE_C_FLAGS=${CFLAGS_DEF} /DCURL_STATICLIB=1"
       UPDATE_COMMAND ""
       LOG_DOWNLOAD TRUE
       LOG_CONFIGURE TRUE
@@ -148,6 +151,7 @@ if (NOT CURL_FOUND AND TILEDB_SUPERBUILD)
   list(APPEND TILEDB_EXTERNAL_PROJECTS ep_curl)
   list(APPEND FORWARD_EP_CMAKE_ARGS
     -DTILEDB_CURL_EP_BUILT=TRUE
+#no...	-DCURL_STATICLIB=ON #pass on to tiledb projects linking against static (curl) library
   )
 endif()
 
