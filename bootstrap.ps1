@@ -23,6 +23,9 @@ Optionally specify the CMake generator string, e.g. "Visual Studio 15
 .PARAMETER EnableDebug
 Enable Debug build.
 
+.PARAMETER EnableReleaseSymbols
+Enable symbols with Release build.
+
 .PARAMETER EnableCoverage
 Enable build with code coverage support.
 
@@ -79,6 +82,7 @@ Param(
     [string]$Dependency,
     [string]$CMakeGenerator,
     [switch]$EnableDebug,
+    [switch]$EnableReleaseSymbols,
     [switch]$EnableCoverage,
     [switch]$EnableVerbose,
     [switch]$EnableAzure,
@@ -117,6 +121,9 @@ $DefaultDependency = $DefaultPrefix
 $BuildType = "Release"
 if ($EnableDebug.IsPresent) {
     $BuildType = "Debug"
+} 
+if ($EnableReleaseSymbols.IsPresent) {
+    $BuildType = "RelWithDebInfo"
 }
 if ($EnableCoverage.IsPresent) {
     $BuildType = "Coverage"

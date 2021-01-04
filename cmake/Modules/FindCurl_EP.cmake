@@ -78,7 +78,7 @@ if (NOT CURL_FOUND AND TILEDB_SUPERBUILD)
       URL_HASH SHA1=54ee48d81eb9f90d3efdc6cdf964bd0a23abc364
       CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=${TILEDB_EP_INSTALL_PREFIX}
-        -DCMAKE_BUILD_TYPE=Release
+        #TBD: Was there specific reason for forcing to 'Release' rather than matching build parameter requested?        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DBUILD_SHARED_LIBS=OFF
         -DCURL_DISABLE_LDAP=ON
         -DCURL_DISABLE_LDAPS=ON

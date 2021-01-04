@@ -57,6 +57,11 @@ if (WIN32)
   list(APPEND INHERITED_CMAKE_ARGS
     -DMSVC_MP_FLAG=${MSVC_MP_FLAG}
   )
+  #temp - see if this avoids symbol resolution issues related to azure/curl
+  #tbd: what's correct way to add to definition????
+  set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DCURL_STATICLIB)
+  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -DCURL_STATICLIB)
+  
 endif()
 
 if (TILEDB_CCACHE)
@@ -126,16 +131,32 @@ endif()
 # Set up the regular build (i.e. non-superbuild).
 ############################################################
 
+if(WIN32)
 ExternalProject_Add(tiledb
   SOURCE_DIR ${PROJECT_SOURCE_DIR}
   CMAKE_ARGS
     -DTILEDB_SUPERBUILD=OFF
     ${INHERITED_CMAKE_ARGS}
+    "-DCMAKE_CXX_FLAGS=/Dazure_storage_lite_EXPORTS -DCURL_STATICLIB ${CMAKE_CFLAGS}"
+    -DCURL_STATICLIB=ON
     ${FORWARD_EP_CMAKE_ARGS}
   INSTALL_COMMAND ""
   BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/tiledb
   DEPENDS ${TILEDB_EXTERNAL_PROJECTS}
 )
+else()
+ExternalProject_Add(tiledb
+  SOURCE_DIR ${PROJECT_SOURCE_DIR}
+  CMAKE_ARGS
+    -DTILEDB_SUPERBUILD=OFF
+    ${INHERITED_CMAKE_ARGS}
+	"-DCMAKE_C_FLAGS=${CMAKE_CFLAGS} -DCURL_STATICLIB=1"
+    ${FORWARD_EP_CMAKE_ARGS}
+  INSTALL_COMMAND ""
+  BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/tiledb
+  DEPENDS ${TILEDB_EXTERNAL_PROJECTS}
+)
+endif()
 
 ############################################################
 # Convenience superbuild targets that invoke TileDB targets

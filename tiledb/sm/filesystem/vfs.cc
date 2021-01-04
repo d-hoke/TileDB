@@ -45,6 +45,15 @@
 #include <sstream>
 #include <unordered_map>
 
+
+//avoid vs2019 conflicts that apparently didn't occur with vs20176.
+#if _WIN32 &&defined(min)
+#undef min
+#endif
+#if _WIN32 && defined(max)
+#undef max
+#endif
+
 namespace tiledb {
 namespace sm {
 

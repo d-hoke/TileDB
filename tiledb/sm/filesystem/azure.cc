@@ -39,6 +39,14 @@
 #include "tiledb/sm/misc/logger.h"
 #include "tiledb/sm/misc/utils.h"
 
+//avoid vs2019 conflict that apparently didn't happen with vs2017.
+#if _WIN32 &&defined(min)
+#undef min
+#endif
+#if _WIN32 && defined(max)
+#undef max
+#endif
+
 namespace tiledb {
 namespace sm {
 
