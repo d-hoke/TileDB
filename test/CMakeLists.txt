@@ -26,6 +26,9 @@
 # THE SOFTWARE.
 #
 
+##TBD: DLH: can we do this in sub-project???
+#set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_SOURCE_DIR}/CompilerOptions.cmake")
+
 find_package(Catch_EP REQUIRED)
 
 # These options not exposed in bootstrap script.
@@ -144,6 +147,8 @@ if (TILEDB_TESTS_ENABLE_REST)
 endif()
 
 # unit test executable
+#message("COMPILE_OPTIONS: ${COMPILE_OPTIONS} (b4 add_executable tiledb_unit)")
+#message("INTERFACE_COMPILE_OPTIONS: ${INTERFACE_COMPILE_OPTIONS} (b4 add_executable tiledb_unit)")
 add_executable(
   tiledb_unit EXCLUDE_FROM_ALL
   $<TARGET_OBJECTS:TILEDB_CORE_OBJECTS>
@@ -250,3 +255,5 @@ add_custom_target(
   check COMMAND ${CMAKE_CTEST_COMMAND} -V -C ${CMAKE_BUILD_TYPE}
   DEPENDS tiledb_unit
 )
+#message("COMPILE_OPTIONS: ${COMPILE_OPTIONS} (end [tiledb_unit] test cmakelists.txt)")
+#message("INTERFACE_COMPILE_OPTIONS: ${INTERFACE_COMPILE_OPTIONS} (end [tiledb_unit] test cmakelists.txt)")

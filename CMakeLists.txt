@@ -32,6 +32,8 @@
 
 cmake_minimum_required(VERSION 3.3)
 
+#set (CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_CURRENT_LIST_DIR}/CompilerOptions.cmake")
+
 ############################################################
 # Parse version file
 # credit: https://stackoverflow.com/a/47084079
