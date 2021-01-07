@@ -57,11 +57,6 @@ if (WIN32)
   list(APPEND INHERITED_CMAKE_ARGS
     -DMSVC_MP_FLAG=${MSVC_MP_FLAG}
   )
-  #temp - see if this avoids symbol resolution issues related to azure/curl
-  #tbd: what's correct way to add to definition????
-#tbd verify if these needed for 'check' (tiledb_unit) to build?
-#  set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} -DCURL_STATICLIB=1)
-#  set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -DCURL_STATICLIB=1)
   
 endif()
 

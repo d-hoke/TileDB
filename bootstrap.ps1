@@ -102,6 +102,11 @@ Param(
     $BuildProcesses = $env:NUMBER_OF_PROCESSORS
 )
 
+Write-Host "called with arguments:"
+$args | ForEach-Object {
+  write-host "arg: $_"
+}
+
 # Return the directory containing this script file.
 function Get-ScriptDirectory {
     Split-Path -Parent $PSCommandPath
@@ -237,3 +242,9 @@ Write-Host
 Invoke-Expression "$CommandString"
 
 Write-Host "Bootstrap success. Run 'cmake --build . --config $BuildType' to build and 'cmake --build . --target check --config $BuildType' to test."
+
+Write-Host "called with arguments:"
+$args | ForEach-Object {
+  write-host "arg: $_"
+}
+
